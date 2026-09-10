@@ -42,7 +42,7 @@ public class TopDown3DController : MonoBehaviour
 
     //Weapon
     // private Gun _gun;
-    // private float _timePerAttack;
+    private float _attackInterval;
     // private bool _isRecoil;
     // private float _BombInterval;
 
@@ -74,6 +74,43 @@ public class TopDown3DController : MonoBehaviour
         ApplyGravity();
         GroundedCheck();
         Move();
+        Attack();
+    }
+
+    private void Attack()
+    {
+        if (input.attackTrigger)
+		{
+			if (_attackInterval <= 0f)
+			{
+				if (_hasAnimator)
+				{
+					animator.SetTrigger(_animIDAttack);
+				}
+
+				//Attack
+				// _isRecoil = true;
+
+				// string guntype = _gun.gunType.ToString();
+				
+				// AudioManager.Instance.Play(guntype);
+
+				// Transform ammoPrefab = _gun.ammoPrefabTransform;
+				// Transform ammo = Instantiate(ammoPrefab, ammoContainerTransform);
+				// ammo.GetComponent<Ammo>().damge = _gun.damagePerTime;
+				
+				// Destroy(ammo.gameObject, ammoDestroy);
+				// Destroy(Instantiate(_gun.vfxPrefabTransform, ammoContainerTransform).gameObject, ammoDestroy);
+				
+				// _attackInterval = _gun.timePerAttk;
+			}
+		}
+		// else
+		// {
+		// 	_isRecoil = false;
+		// }
+
+		_attackInterval -= Time.deltaTime;
     }
 
     private void Move()
