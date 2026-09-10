@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class TopDown3DController : MonoBehaviour
@@ -11,10 +12,14 @@ public class TopDown3DController : MonoBehaviour
     [Range(0.0f, 0.3f)]
     [SerializeField] private float RotationSmoothTime = 0.12f;
 
+    [Header("Attack")]
+    [SerializeField] private float animateAttackInterval = 2f;
+
     [Header("References"), Space]
     [SerializeField] private AssetsInputSystems input;
     [SerializeField] private CharacterController controller;
     [SerializeField] private Animator animator;
+
     private GameObject mainCamera;
 
     [Header("Player Grounded")]
@@ -43,6 +48,7 @@ public class TopDown3DController : MonoBehaviour
     //Weapon
     // private Gun _gun;
     private float _attackInterval;
+    private float _animateAttackInterval;
     // private bool _isRecoil;
     // private float _BombInterval;
 
@@ -57,8 +63,14 @@ public class TopDown3DController : MonoBehaviour
 
     private void Start()
     {
-        _hasAnimator = animator != null ? true : false;
+        Setup();
+
         AssignAnimationIDs();
+    }
+
+    private void Setup()
+    {
+        _hasAnimator = animator != null ? true : false;
     }
 
     private void AssignAnimationIDs()
@@ -83,9 +95,11 @@ public class TopDown3DController : MonoBehaviour
 		{
 			if (_attackInterval <= 0f)
 			{
-				if (_hasAnimator)
+				if (_hasAnimator && _animateAttackInterval <= 0f)
 				{
 					animator.SetTrigger(_animIDAttack);
+                    
+                    _animateAttackInterval = animateAttackInterval;
 				}
 
 				//Attack
@@ -111,6 +125,7 @@ public class TopDown3DController : MonoBehaviour
 		// }
 
 		_attackInterval -= Time.deltaTime;
+        _animateAttackInterval -= Time.deltaTime;
     }
 
     private void Move()
