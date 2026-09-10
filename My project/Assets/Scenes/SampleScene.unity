@@ -2976,10 +2976,10 @@ Animator:
   m_GameObject: {fileID: 2282464987251236910}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: e88b81dbbde6e97419fd1f6bdc41d4ca, type: 3}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: e425841c4764c894e9844e5f2ae8160b, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -4707,7 +4707,7 @@ MonoBehaviour:
   _agent: {fileID: 4495129090263449845}
   detectRange: 10
   attackRange: 1.8
-  moveSpeed: 3.5
+  moveSpeed: 1.5
   damage: 10
   timePerAttack: 1.2
 --- !u!1 &4526215179661768706

@@ -32,6 +32,10 @@ public class EnemyAI : MonoBehaviour
     private static readonly int AnimIDAttack = Animator.StringToHash("Attack");
     private static readonly int AnimIDDie = Animator.StringToHash("Death");
 
+    private AudioSource _chaseAaudioS;
+    private AudioSource _aggAudioS;
+    private AudioSource _deathAudioS;
+
     private void Awake()
     {
         _hasAnimator = _animator != null;
@@ -56,22 +60,6 @@ public class EnemyAI : MonoBehaviour
     {
         if (_isDead || player == null) return;
 
-        // if (!GameManager.Instance.IsPlaying)
-        // {
-        //     StopChaseSound();
-        //     return;
-        // }
-        // if (!GameManager.Instance.IsInCameraView(_cam.GetComponent<Camera>(), transform) && _chaseAaudioS.isPlaying)
-        // {
-        //     AudioManager.Instance.Stop("ZombieChase");
-        // }
-
-        // if (_healthBar.Health <= 0)
-        // {
-        //     Die();
-        //     return;
-        // }
-
         Move();
 
         UpdateAnimator();
@@ -92,6 +80,8 @@ public class EnemyAI : MonoBehaviour
             {
                 StartCoroutine("WaitTime");
             }
+
+            HandleAttack();
         }
         else if (distance <= detectRange)
         {
@@ -131,6 +121,18 @@ public class EnemyAI : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 4f);
     }
 
+    private void HandleAttack()
+    {
+        if (_attackTimer > 0f)
+            return;
+
+        // if (_hasAnimator)
+        // {
+        //     _animator.SetTrigger(AnimIDAttack);
+        // }
+
+        _attackTimer = timePerAttack;
+    }
 
     private void UpdateAnimator()
     {
@@ -140,4 +142,28 @@ public class EnemyAI : MonoBehaviour
         _animator.SetFloat(AnimIDSpeed, speedPercent);
     }
 
+    private IEnumerator KnockBack(int knockback)
+    {
+        _agent.speed -= knockback;
+        yield return new WaitForSeconds(.5f);
+        _agent.speed = moveSpeed;
+    }
+
+    private void Die()
+    {
+        _isDead = true;
+        _agent.isStopped = true;
+
+        if (_hasAnimator)
+        {
+            _animator.SetTrigger(AnimIDDie);
+        }
+
+        if (TryGetComponent<Collider>(out var col))
+        {
+            col.enabled = false;
+        }
+
+        Destroy(gameObject, 2.5f);
+    }
 }
