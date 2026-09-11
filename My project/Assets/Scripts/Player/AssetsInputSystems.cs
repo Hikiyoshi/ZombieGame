@@ -31,6 +31,11 @@ public class AssetsInputSystems : MonoBehaviour
         switchWeaponTrigger = inputValue.isPressed;
     }
 
+    public void SetSwitchWeaponTrigger(bool value)
+    {
+        switchWeaponTrigger = value;
+    }
+
     public void OnBomb(InputValue inputValue)
     {
         bombTrigger = inputValue.isPressed;
