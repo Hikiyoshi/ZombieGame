@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -5,7 +6,7 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    // public event Action<ZombieType> OnDeath;
+    public event Action<ZombieType> OnDeath;
 
     [Header("References")]
     [SerializeField] private Transform player;
@@ -22,7 +23,7 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private int damage = 10;
     [SerializeField] private float timePerAttack = 1.2f;
 
-    // [SerializeField] private ZombieType _zombieType;
+    [SerializeField] private ZombieType _zombieType;
 
     private float _attackTimer;
     private bool _hasAnimator;
@@ -249,17 +250,13 @@ public class EnemyAI : MonoBehaviour
         {
             col.enabled = false;
         }
-        if (TryGetComponent<Rigidbody>(out var rig))
-        {
-            rig.isKinematic = true;
-        }
 
-        // OnDeath?.Invoke(GetZombieType());
+        OnDeath?.Invoke(GetZombieType());
         Destroy(gameObject, 2.5f);
     }
 
-    // public ZombieType GetZombieType()
-    // {
-    //     return _zombieType;
-    // }
+    public ZombieType GetZombieType()
+    {
+        return _zombieType;
+    }
 }
