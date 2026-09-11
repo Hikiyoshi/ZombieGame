@@ -31,6 +31,11 @@ public class TopDown3DController : MonoBehaviour
     [SerializeField] private LayerMask GroundLayers;
     [SerializeField] private Transform GunMuzzle;
 
+    [Header("Bomb")]
+    [SerializeField] private Transform bombPrefab;
+    [SerializeField] private int bombAmount;
+    [SerializeField] private float plantBombInterval;
+
     // Animation IDs
     private int _animIDSpeed;
     private int _animIDMotionSpeed;
@@ -53,7 +58,10 @@ public class TopDown3DController : MonoBehaviour
     private float _attackInterval;
     private float _animateAttackInterval;
     private bool _isRecoil;
-    // private float _BombInterval;
+
+    //Landmine
+    private float _plantBombInterval;
+    public event Action<int> PlantBombEvent;
 
     private GameObject mainCamera;
 
@@ -76,6 +84,8 @@ public class TopDown3DController : MonoBehaviour
     private void Setup()
     {
         _hasAnimator = animator != null ? true : false;
+
+        PlantBombEvent?.Invoke(bombAmount);
     }
 
     private void AssignAnimationIDs()
@@ -88,11 +98,49 @@ public class TopDown3DController : MonoBehaviour
 
     private void Update()
     {
+        if(_isDie)
+			return;
+
+		if(healthBar.Health <= 0)
+        {
+            OutOfHp();
+        }
+
         ApplyGravity();
         GroundedCheck();
         Move();
         Attack();
+        PlantBomb();
     }
+
+    private void OutOfHp()
+    {
+		_isDie = true;
+        Debug.Log("GameOver");
+		GameManager.Instance.Gameover();
+		// animator.SetTrigger(_animIDDeath);
+    }
+
+    public void PlantBomb()
+	{
+		if (input.bombTrigger && _plantBombInterval <= 0)
+		{
+			if(bombAmount > 0)
+			{
+				Vector3 position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+				Instantiate(bombPrefab, position, Quaternion.identity);
+				bombAmount--;
+				PlantBombEvent?.Invoke(bombAmount);
+				_plantBombInterval = plantBombInterval;
+			}
+			else
+			{
+				Debug.Log("Out of bomb");
+			}
+		}
+
+		_plantBombInterval -= Time.deltaTime;
+	}
 
     private void Attack()
     {
@@ -126,7 +174,7 @@ public class TopDown3DController : MonoBehaviour
         }
         else
         {
-        	_isRecoil = false;
+            _isRecoil = false;
         }
 
         _attackInterval -= Time.deltaTime;
@@ -225,10 +273,10 @@ public class TopDown3DController : MonoBehaviour
     }
 
     public void SetGun(Gun gun)
-	{
-		_attackInterval = -1f;
-		_gun = gun;
-	}
+    {
+        _attackInterval = -1f;
+        _gun = gun;
+    }
 
     public void TakeDamge(int damage)
     {

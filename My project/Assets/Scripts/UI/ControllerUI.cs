@@ -11,7 +11,7 @@ public class ControllerUI : MonoBehaviour
 
     private void Start()
     {
-        // playerController.PlantBombEvent += UpdateBombButton;
+        playerController.PlantBombEvent += UpdateBombButton;
 
         pauseBtn.onClick.AddListener(GameManager.Instance.Pause);
     }
