@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5f15ae523cc73c45998026d275600ec, type: 3}
   m_Name: Shortgun
   m_EditorClassIdentifier: Assembly-CSharp::GunScriptableObjectScript
-  name: M16
+  name: shortgun
   damgePerTime: 40
   knockback: 4
-  timePerAttk: 0.5
+  timePerAttk: 2.5
   magazine: 5
   prefabTransform: {fileID: 4261691659485423912, guid: aa342fb9208430e4b9a4227a4ead7852, type: 3}
   ammoPrefabTransform: {fileID: 1427731855661047968, guid: 1c6e4c2a9278d4a4da0477e1f40963a5, type: 3}
-  vfxPrefabTransform: {fileID: 0}
+  vfxPrefabTransform: {fileID: 400002, guid: 00fb4a82e7b64264780846d5d25d3cb8, type: 3}
   gunType: 1

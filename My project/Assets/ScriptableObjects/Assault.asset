@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunScriptableObjectScript
   name: M16
   damgePerTime: 10
-  knockback: 3
+  knockback: 2
   timePerAttk: 0.5
   magazine: 30
   prefabTransform: {fileID: 306475767918263242, guid: c61a9e3f484dbe44badc1059f174b5da, type: 3}
   ammoPrefabTransform: {fileID: 1040099973313795890, guid: 35d0804f6b8822044a3f6d624e38664b, type: 3}
-  vfxPrefabTransform: {fileID: 0}
+  vfxPrefabTransform: {fileID: 400006, guid: 234e5aa95353f0643b0181dc3872cda9, type: 3}
   gunType: 0

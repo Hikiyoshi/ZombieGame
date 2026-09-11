@@ -15,13 +15,13 @@ public class TopDown3DController : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private float animateAttackInterval = 2f;
     [SerializeField] private float ammoDestroy = .3f;
-    // [SerializeField] private ParticleSystem bloodPS;
 
     [Header("References"), Space]
     [SerializeField] private AssetsInputSystems input;
     [SerializeField] private CharacterController controller;
     [SerializeField] private Animator animator;
     [SerializeField] private HealthBar healthBar;
+    [SerializeField] private ParticleSystem bloodPS;
 
 
     [Header("Player Grounded")]
@@ -119,7 +119,7 @@ public class TopDown3DController : MonoBehaviour
                 ammo.GetComponent<Ammo>().damge = _gun.damagePerTime;
 
                 Destroy(ammo.gameObject, ammoDestroy);
-                // Destroy(Instantiate(_gun.vfxPrefabTransform, GunMuzzle).gameObject, ammoDestroy);
+                Destroy(Instantiate(_gun.vfxPrefabTransform, GunMuzzle).gameObject, ammoDestroy);
 
                 _attackInterval = _gun.timePerAttk;
             }
@@ -235,7 +235,7 @@ public class TopDown3DController : MonoBehaviour
         if (_isDie) return;
 
         healthBar.GotHit(damage);
-        // bloodPS.Play();
+        bloodPS.Play();
     }
 
     public HealthBar GetHealthBar()
