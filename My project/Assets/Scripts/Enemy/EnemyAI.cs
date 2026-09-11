@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,6 +10,7 @@ public class EnemyAI : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform player;
     [SerializeField] private Animator _animator;
+    [SerializeField] private HealthBar _healthBar;
     [SerializeField] private NavMeshAgent _agent;
 
     [Header("Chase")]
@@ -19,6 +21,8 @@ public class EnemyAI : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private int damage = 10;
     [SerializeField] private float timePerAttack = 1.2f;
+
+    // [SerializeField] private ZombieType _zombieType;
 
     private float _attackTimer;
     private bool _hasAnimator;
@@ -54,11 +58,31 @@ public class EnemyAI : MonoBehaviour
         {
             _cam = GameObject.FindGameObjectWithTag("MainCamera");
         }
+
+        // _chaseAaudioS = AudioManager.Instance.GetAudio("ZombieChase").source;
+        // _aggAudioS = AudioManager.Instance.GetAudio("ZombieAgg").source;
+        // _deathAudioS = AudioManager.Instance.GetAudio("ZombieDeath").source;
     }
 
     private void Update()
     {
         if (_isDead || player == null) return;
+
+        // if (!GameManager.Instance.IsPlaying)
+        // {
+        //     StopChaseSound();
+        //     return;
+        // }
+        // if (!GameManager.Instance.IsInCameraView(_cam.GetComponent<Camera>(), transform) && _chaseAaudioS.isPlaying)
+        // {
+        //     AudioManager.Instance.Stop("ZombieChase");
+        // }
+
+        if (_healthBar.Health <= 0)
+        {
+            Die();
+            return;
+        }
 
         Move();
 
@@ -80,12 +104,14 @@ public class EnemyAI : MonoBehaviour
             {
                 StartCoroutine("WaitTime");
             }
-
-            HandleAttack();
         }
         else if (distance <= detectRange)
         {
-            _agent.isStopped = false;
+            if(_isWaitingAfterAttack)
+            {
+                _agent.isStopped = false;
+                return;
+            }
 
             _pathUpdateTimer -= Time.deltaTime;
             if (_pathUpdateTimer <= 0f)
@@ -93,20 +119,52 @@ public class EnemyAI : MonoBehaviour
                 _agent.SetDestination(player.position);
                 _pathUpdateTimer = 1f;
             }
+
+            // bool inView = GameManager.Instance.IsInCameraView(_cam.GetComponent<Camera>(), transform);
+
+            // if (inView && !_chaseAaudioS.isPlaying && !_aggAudioS.isPlaying && !_deathAudioS.isPlaying)
+            // {
+            //     AudioManager.Instance.Play("ZombieChase");
+            // }
+            // else if (!inView && chaseAaudioS.isPlaying)
+            // {
+            //     AudioManager.Instance.Stop("ZombieChase");
+            // }
         }
         else
         {
+            StopChaseSound();
             _agent.isStopped = true;
         }
 
         FacePlayer();
     }
 
+    private void StopChaseSound()
+    {
+        // AudioManager.Instance.Stop("ZombieChase");
+    }
+
+    private void StopAttackSound()
+    {
+        // AudioManager.Instance.Stop("ZombieAgg");
+    }
+
+    public void PlayAttackSound()
+    {
+        StopChaseSound();
+        // AudioManager.Instance.Play("ZombieAgg");
+    }
+
     private IEnumerator WaitTime()
     {
+        HandleAttack();
+
         _isWaitingAfterAttack = true;
         _agent.isStopped = true;
-        yield return new WaitForSeconds(1.5f);
+
+        yield return new WaitForSeconds(2.5f);
+
         _agent.isStopped = false;
         _isWaitingAfterAttack = false;
     }
@@ -126,12 +184,26 @@ public class EnemyAI : MonoBehaviour
         if (_attackTimer > 0f)
             return;
 
-        // if (_hasAnimator)
-        // {
-        //     _animator.SetTrigger(AnimIDAttack);
-        // }
+        if (_hasAnimator)
+        {
+            _animator.SetTrigger(AnimIDAttack);
+        }
 
         _attackTimer = timePerAttack;
+    }
+
+    public void DealDamage()
+    {
+        if (player == null)
+            return;
+
+        if (Vector3.Distance(transform.position, player.position) > attackRange + 0.5f)
+            return;
+
+        if (player.TryGetComponent<TopDown3DController>(out var controller))
+        {
+            controller.TakeDamge(damage);
+        }
     }
 
     private void UpdateAnimator()
@@ -140,6 +212,15 @@ public class EnemyAI : MonoBehaviour
 
         float speedPercent = _agent.velocity.magnitude / Mathf.Max(_agent.speed, 0.01f);
         _animator.SetFloat(AnimIDSpeed, speedPercent);
+    }
+
+    public void GotHit(int amount)
+    {
+        if (_isDead) return;
+
+        _healthBar.GotHit(amount);
+
+        StartCoroutine(KnockBack(2));
     }
 
     private IEnumerator KnockBack(int knockback)
@@ -153,6 +234,11 @@ public class EnemyAI : MonoBehaviour
     {
         _isDead = true;
         _agent.isStopped = true;
+        _healthBar.gameObject.SetActive(false);
+
+        StopChaseSound();
+        StopAttackSound();
+        // AudioManager.Instance.Play("ZombieDeath");
 
         if (_hasAnimator)
         {
@@ -164,6 +250,12 @@ public class EnemyAI : MonoBehaviour
             col.enabled = false;
         }
 
+        // OnDeath?.Invoke(GetZombieType());
         Destroy(gameObject, 2.5f);
     }
+
+    // public ZombieType GetZombieType()
+    // {
+    //     return _zombieType;
+    // }
 }

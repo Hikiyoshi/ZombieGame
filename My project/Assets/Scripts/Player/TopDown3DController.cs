@@ -14,19 +14,22 @@ public class TopDown3DController : MonoBehaviour
 
     [Header("Attack")]
     [SerializeField] private float animateAttackInterval = 2f;
+    [SerializeField] private float ammoDestroy = .3f;
+    // [SerializeField] private ParticleSystem bloodPS;
 
     [Header("References"), Space]
     [SerializeField] private AssetsInputSystems input;
     [SerializeField] private CharacterController controller;
     [SerializeField] private Animator animator;
+    [SerializeField] private HealthBar healthBar;
 
-    private GameObject mainCamera;
 
     [Header("Player Grounded")]
     [SerializeField] private bool isGrounded = true;
     [SerializeField] private float GroundedOffset = -0.14f;
     [SerializeField] private float GroundedRadius = 0.28f;
     [SerializeField] private LayerMask GroundLayers;
+    [SerializeField] private Transform GunMuzzle;
 
     // Animation IDs
     private int _animIDSpeed;
@@ -46,11 +49,13 @@ public class TopDown3DController : MonoBehaviour
     private bool _isDie;
 
     //Weapon
-    // private Gun _gun;
+    private Gun _gun;
     private float _attackInterval;
     private float _animateAttackInterval;
-    // private bool _isRecoil;
+    private bool _isRecoil;
     // private float _BombInterval;
+
+    private GameObject mainCamera;
 
     private void Awake()
     {
@@ -92,39 +97,39 @@ public class TopDown3DController : MonoBehaviour
     private void Attack()
     {
         if (input.attackTrigger)
-		{
-			if (_attackInterval <= 0f)
-			{
-				if (_hasAnimator && _animateAttackInterval <= 0f)
-				{
-					animator.SetTrigger(_animIDAttack);
-                    
+        {
+            if (_attackInterval <= 0f)
+            {
+                if (_hasAnimator && _animateAttackInterval <= 0f)
+                {
+                    animator.SetTrigger(_animIDAttack);
+
                     _animateAttackInterval = animateAttackInterval;
-				}
+                }
 
-				//Attack
-				// _isRecoil = true;
+                //Attack
+                _isRecoil = true;
 
-				// string guntype = _gun.gunType.ToString();
-				
-				// AudioManager.Instance.Play(guntype);
+                string guntype = _gun.gunType.ToString();
 
-				// Transform ammoPrefab = _gun.ammoPrefabTransform;
-				// Transform ammo = Instantiate(ammoPrefab, ammoContainerTransform);
-				// ammo.GetComponent<Ammo>().damge = _gun.damagePerTime;
-				
-				// Destroy(ammo.gameObject, ammoDestroy);
-				// Destroy(Instantiate(_gun.vfxPrefabTransform, ammoContainerTransform).gameObject, ammoDestroy);
-				
-				// _attackInterval = _gun.timePerAttk;
-			}
-		}
-		// else
-		// {
-		// 	_isRecoil = false;
-		// }
+                // AudioManager.Instance.Play(guntype);
 
-		_attackInterval -= Time.deltaTime;
+                Transform ammoPrefab = _gun.ammoPrefabTransform;
+                Transform ammo = Instantiate(ammoPrefab, GunMuzzle);
+                ammo.GetComponent<Ammo>().damge = _gun.damagePerTime;
+
+                Destroy(ammo.gameObject, ammoDestroy);
+                // Destroy(Instantiate(_gun.vfxPrefabTransform, GunMuzzle).gameObject, ammoDestroy);
+
+                _attackInterval = _gun.timePerAttk;
+            }
+        }
+        else
+        {
+        	_isRecoil = false;
+        }
+
+        _attackInterval -= Time.deltaTime;
         _animateAttackInterval -= Time.deltaTime;
     }
 
@@ -146,10 +151,10 @@ public class TopDown3DController : MonoBehaviour
         float inputMagnitude = input.IsAnalogMovement() ? input.moveInput.magnitude : 1f;
 
         //Apply Recoil
-        // if (_isRecoil)
-        // {
-        //     targetSpeed = targetSpeed - _gun.knockback;
-        // }
+        if (_isRecoil && input.moveInput != Vector2.zero)
+        {
+            targetSpeed = targetSpeed - _gun.knockback;
+        }
 
         // accelerate or decelerate to target speed
         if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
@@ -217,5 +222,24 @@ public class TopDown3DController : MonoBehaviour
         {
             _verticalVelocity += gravity * Time.deltaTime;
         }
+    }
+
+    public void SetGun(Gun gun)
+	{
+		_attackInterval = -1f;
+		_gun = gun;
+	}
+
+    public void TakeDamge(int damage)
+    {
+        if (_isDie) return;
+
+        healthBar.GotHit(damage);
+        // bloodPS.Play();
+    }
+
+    public HealthBar GetHealthBar()
+    {
+        return this.healthBar;
     }
 }
