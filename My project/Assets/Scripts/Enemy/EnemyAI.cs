@@ -249,6 +249,10 @@ public class EnemyAI : MonoBehaviour
         {
             col.enabled = false;
         }
+        if (TryGetComponent<Rigidbody>(out var rig))
+        {
+            rig.isKinematic = true;
+        }
 
         // OnDeath?.Invoke(GetZombieType());
         Destroy(gameObject, 2.5f);
