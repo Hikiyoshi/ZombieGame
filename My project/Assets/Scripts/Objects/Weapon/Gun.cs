@@ -8,7 +8,7 @@ public class Gun
     public Transform prefabTransform {get; set;}
     public GunType gunType {get; set;}
     public float timePerAttk {get; set;}
-    public float magazine {get; set;}
+    public int magazine {get; set;}
     public Transform ammoPrefabTransform {get; set;}
     public Transform vfxPrefabTransform {get; set;}
 

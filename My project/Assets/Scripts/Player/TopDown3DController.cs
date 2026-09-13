@@ -58,6 +58,8 @@ public class TopDown3DController : MonoBehaviour
     private float _attackInterval;
     private float _animateAttackInterval;
     private bool _isRecoil;
+    private int _gunMagazine;
+    private int _currentMagazine;
 
     //Landmine
     private float _plantBombInterval;
@@ -275,6 +277,7 @@ public class TopDown3DController : MonoBehaviour
     public void SetGun(Gun gun)
     {
         _attackInterval = -1f;
+        _currentMagazine = gun.magazine;
         _gun = gun;
     }
 
