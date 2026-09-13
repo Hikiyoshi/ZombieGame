@@ -60,9 +60,9 @@ public class EnemyAI : MonoBehaviour
             _cam = GameObject.FindGameObjectWithTag("MainCamera");
         }
 
-        // _chaseAaudioS = AudioManager.Instance.GetAudio("ZombieChase").source;
-        // _aggAudioS = AudioManager.Instance.GetAudio("ZombieAgg").source;
-        // _deathAudioS = AudioManager.Instance.GetAudio("ZombieDeath").source;
+        _chaseAaudioS = AudioManager.Instance.GetAudio("ZomHiss").source;
+        _aggAudioS = AudioManager.Instance.GetAudio("ZomAgg").source;
+        _deathAudioS = AudioManager.Instance.GetAudio("ZomDeath").source;
     }
 
     private void Update()
@@ -134,27 +134,20 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            StopChaseSound();
             _agent.isStopped = true;
         }
 
         FacePlayer();
     }
 
-    private void StopChaseSound()
-    {
-        // AudioManager.Instance.Stop("ZombieChase");
-    }
-
     private void StopAttackSound()
     {
-        // AudioManager.Instance.Stop("ZombieAgg");
+        AudioManager.Instance.Stop("ZomHiss");
     }
 
     public void PlayAttackSound()
     {
-        StopChaseSound();
-        // AudioManager.Instance.Play("ZombieAgg");
+        AudioManager.Instance.Play("ZomHiss");
     }
 
     private IEnumerator WaitTime()
@@ -189,7 +182,8 @@ public class EnemyAI : MonoBehaviour
         {
             _animator.SetTrigger(AnimIDAttack);
         }
-
+        
+        PlayAttackSound();
         _attackTimer = timePerAttack;
     }
 
@@ -211,8 +205,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (!_hasAnimator) return;
 
-        float speedPercent = _agent.velocity.magnitude / Mathf.Max(_agent.speed, 0.01f);
-        _animator.SetFloat(AnimIDSpeed, speedPercent);
+        _animator.SetFloat(AnimIDSpeed, _agent.velocity.magnitude);
     }
 
     public void GotHit(int amount)
@@ -237,9 +230,8 @@ public class EnemyAI : MonoBehaviour
         _agent.isStopped = true;
         _healthBar.gameObject.SetActive(false);
 
-        StopChaseSound();
         StopAttackSound();
-        // AudioManager.Instance.Play("ZombieDeath");
+        AudioManager.Instance.Play("ZombieDeath");
 
         if (_hasAnimator)
         {

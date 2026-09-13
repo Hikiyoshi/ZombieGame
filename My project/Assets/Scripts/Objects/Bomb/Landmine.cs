@@ -14,7 +14,7 @@ public class Landmine : MonoBehaviour
             EnemyAI zombie = other.gameObject.GetComponent<EnemyAI>();
             if(zombie != null)
             {
-                // AudioManager.Instance.Play("Bomb");
+                AudioManager.Instance.Play("Explosion");
                 Explosion();
                 Instantiate(_explodeEffect, transform.position, Quaternion.identity);
             }

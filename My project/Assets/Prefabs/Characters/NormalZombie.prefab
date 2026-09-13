@@ -1309,7 +1309,7 @@ MonoBehaviour:
   _animator: {fileID: 1092286934237472129}
   _healthBar: {fileID: 370383173611840895}
   _agent: {fileID: 6108551143676748690}
-  detectRange: 10
+  detectRange: 100
   attackRange: 1.2
   moveSpeed: 1.2
   damage: 10

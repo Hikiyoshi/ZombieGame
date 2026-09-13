@@ -160,7 +160,7 @@ public class TopDown3DController : MonoBehaviour
 
                 string guntype = _gun.gunType.ToString();
 
-                // AudioManager.Instance.Play(guntype);
+                AudioManager.Instance.Play(guntype);
 
                 Transform ammoPrefab = _gun.ammoPrefabTransform;
                 Transform ammo = Instantiate(ammoPrefab, GunMuzzle);
