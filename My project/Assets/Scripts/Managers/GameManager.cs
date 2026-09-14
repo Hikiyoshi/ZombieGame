@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene("StartScene");
     }
-
+public void test(){Debug.Log("test");}
     public void Resume()
     {
         OnCloseMenu?.Invoke();

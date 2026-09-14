@@ -15,6 +15,7 @@ public class TopDown3DController : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private float animateAttackInterval = 2f;
     [SerializeField] private float ammoDestroy = .3f;
+    [SerializeField] private float reloadTime = .3f;
 
     [Header("References"), Space]
     [SerializeField] private AssetsInputSystems input;
@@ -40,6 +41,7 @@ public class TopDown3DController : MonoBehaviour
     private int _animIDSpeed;
     private int _animIDMotionSpeed;
     private int _animIDAttack;
+    private int _animIDReload;
     private int _animIDDeath;
 
     // Player
@@ -94,6 +96,7 @@ public class TopDown3DController : MonoBehaviour
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDAttack = Animator.StringToHash("Attack");
+        _animIDReload = Animator.StringToHash("Reload");
         _animIDDeath = Animator.StringToHash("Death");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
@@ -150,6 +153,12 @@ public class TopDown3DController : MonoBehaviour
         {
             if (_attackInterval <= 0f)
             {
+                if(_currentMagazine <= 0)
+                {
+                    StartCoroutine("Reload");
+                    return;
+                }
+
                 if (_hasAnimator && _animateAttackInterval <= 0f)
                 {
                     animator.SetTrigger(_animIDAttack);
@@ -167,6 +176,7 @@ public class TopDown3DController : MonoBehaviour
                 Transform ammoPrefab = _gun.ammoPrefabTransform;
                 Transform ammo = Instantiate(ammoPrefab, GunMuzzle);
                 ammo.GetComponent<Ammo>().damge = _gun.damagePerTime;
+                _currentMagazine -= 1;
 
                 Destroy(ammo.gameObject, ammoDestroy);
                 Destroy(Instantiate(_gun.vfxPrefabTransform, GunMuzzle).gameObject, ammoDestroy);
@@ -181,6 +191,13 @@ public class TopDown3DController : MonoBehaviour
 
         _attackInterval -= Time.deltaTime;
         _animateAttackInterval -= Time.deltaTime;
+    }
+
+    private IEnumerator Reload()
+    {
+        animator.SetTrigger(_animIDReload);
+        yield return new WaitForSeconds(reloadTime);
+        _currentMagazine = _gunMagazine;
     }
 
     private void Move()
@@ -277,7 +294,8 @@ public class TopDown3DController : MonoBehaviour
     public void SetGun(Gun gun)
     {
         _attackInterval = -1f;
-        _currentMagazine = gun.magazine;
+        _gunMagazine = gun.magazine;
+        _currentMagazine = _gunMagazine;
         _gun = gun;
     }
 

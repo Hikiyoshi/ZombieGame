@@ -4135,7 +4135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48d018b16cd0afd4fb54210cd4e95fac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  surviveTime: 4
+  surviveTime: 100
   currentLevel: 1
 --- !u!1001 &1024768828
 PrefabInstance:
@@ -9397,6 +9397,7 @@ MonoBehaviour:
   RotationSmoothTime: 0.12
   animateAttackInterval: 1
   ammoDestroy: 0.3
+  reloadTime: 0.3
   input: {fileID: 3211709137966854841}
   controller: {fileID: 542264227488940434}
   animator: {fileID: 4148092927582647595}

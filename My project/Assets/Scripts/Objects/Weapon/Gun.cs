@@ -18,7 +18,7 @@ public class Gun
         this.damagePerTime = gun.damgePerTime;
         this.knockback = gun.knockback;
         this.timePerAttk = gun.timePerAttk;
-        this.magazine = magazine;
+        this.magazine = gun.magazine;
         this.prefabTransform = gun.prefabTransform;
         this.ammoPrefabTransform = gun.ammoPrefabTransform;
         this.vfxPrefabTransform = gun.vfxPrefabTransform;
