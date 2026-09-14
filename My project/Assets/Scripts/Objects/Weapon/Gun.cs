@@ -8,7 +8,7 @@ public class Gun
     public Transform prefabTransform {get; set;}
     public GunType gunType {get; set;}
     public float timePerAttk {get; set;}
-    public float magazine {get; set;}
+    public int magazine {get; set;}
     public Transform ammoPrefabTransform {get; set;}
     public Transform vfxPrefabTransform {get; set;}
 
@@ -18,7 +18,7 @@ public class Gun
         this.damagePerTime = gun.damgePerTime;
         this.knockback = gun.knockback;
         this.timePerAttk = gun.timePerAttk;
-        this.magazine = magazine;
+        this.magazine = gun.magazine;
         this.prefabTransform = gun.prefabTransform;
         this.ammoPrefabTransform = gun.ammoPrefabTransform;
         this.vfxPrefabTransform = gun.vfxPrefabTransform;

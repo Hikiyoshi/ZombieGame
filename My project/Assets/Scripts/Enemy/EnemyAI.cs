@@ -14,10 +14,12 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private HealthBar _healthBar;
     [SerializeField] private NavMeshAgent _agent;
 
-    [Header("Chase")]
+    [Header("Attributes")]
     [SerializeField] private float detectRange = 10f;
     [SerializeField] private float attackRange = 1.8f;
     [SerializeField] private float moveSpeed = 3.5f;
+    [SerializeField] private float runSpeed = 4f;
+    [SerializeField] private float aggressiveTriggerInterval = 1.5f;
 
     [Header("Attack")]
     [SerializeField] private int damage = 10;
@@ -32,9 +34,15 @@ public class EnemyAI : MonoBehaviour
     private bool _isWaitingAfterAttack;
     private float _pathUpdateTimer;
 
+    //Mutation
+    private bool _isMutation;
+    private bool _isAgg;
+    private float _aggressiveTriggerInterval;
+
     // Animator hashes
     private static readonly int AnimIDSpeed = Animator.StringToHash("Speed");
     private static readonly int AnimIDAttack = Animator.StringToHash("Attack");
+    private static readonly int AnimIDAgg = Animator.StringToHash("Aggressive");
     private static readonly int AnimIDDie = Animator.StringToHash("Death");
 
     private AudioSource _chaseAaudioS;
@@ -51,6 +59,9 @@ public class EnemyAI : MonoBehaviour
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null) player = playerObj.transform;
         }
+
+        _isMutation = _zombieType == ZombieType.Mutation;
+        _aggressiveTriggerInterval = aggressiveTriggerInterval;
     }
 
     private void Start()
@@ -60,24 +71,14 @@ public class EnemyAI : MonoBehaviour
             _cam = GameObject.FindGameObjectWithTag("MainCamera");
         }
 
-        // _chaseAaudioS = AudioManager.Instance.GetAudio("ZombieChase").source;
-        // _aggAudioS = AudioManager.Instance.GetAudio("ZombieAgg").source;
-        // _deathAudioS = AudioManager.Instance.GetAudio("ZombieDeath").source;
+        _chaseAaudioS = AudioManager.Instance.GetAudio("ZomHiss").source;
+        _aggAudioS = AudioManager.Instance.GetAudio("ZomAgg").source;
+        _deathAudioS = AudioManager.Instance.GetAudio("ZomDeath").source;
     }
 
     private void Update()
     {
         if (_isDead || player == null) return;
-
-        // if (!GameManager.Instance.IsPlaying)
-        // {
-        //     StopChaseSound();
-        //     return;
-        // }
-        // if (!GameManager.Instance.IsInCameraView(_cam.GetComponent<Camera>(), transform) && _chaseAaudioS.isPlaying)
-        // {
-        //     AudioManager.Instance.Stop("ZombieChase");
-        // }
 
         if (_healthBar.Health <= 0)
         {
@@ -88,6 +89,8 @@ public class EnemyAI : MonoBehaviour
         Move();
 
         UpdateAnimator();
+
+        HandleMutation();
 
         if (_attackTimer > 0f)
         {
@@ -108,7 +111,7 @@ public class EnemyAI : MonoBehaviour
         }
         else if (distance <= detectRange)
         {
-            if(_isWaitingAfterAttack)
+            if (_isWaitingAfterAttack)
             {
                 _agent.isStopped = false;
                 return;
@@ -120,41 +123,23 @@ public class EnemyAI : MonoBehaviour
                 _agent.SetDestination(player.position);
                 _pathUpdateTimer = 1f;
             }
-
-            // bool inView = GameManager.Instance.IsInCameraView(_cam.GetComponent<Camera>(), transform);
-
-            // if (inView && !_chaseAaudioS.isPlaying && !_aggAudioS.isPlaying && !_deathAudioS.isPlaying)
-            // {
-            //     AudioManager.Instance.Play("ZombieChase");
-            // }
-            // else if (!inView && chaseAaudioS.isPlaying)
-            // {
-            //     AudioManager.Instance.Stop("ZombieChase");
-            // }
         }
         else
         {
-            StopChaseSound();
             _agent.isStopped = true;
         }
 
         FacePlayer();
     }
 
-    private void StopChaseSound()
-    {
-        // AudioManager.Instance.Stop("ZombieChase");
-    }
-
     private void StopAttackSound()
     {
-        // AudioManager.Instance.Stop("ZombieAgg");
+        AudioManager.Instance.Stop("ZomHiss");
     }
 
     public void PlayAttackSound()
     {
-        StopChaseSound();
-        // AudioManager.Instance.Play("ZombieAgg");
+        AudioManager.Instance.Play("ZomHiss");
     }
 
     private IEnumerator WaitTime()
@@ -190,6 +175,7 @@ public class EnemyAI : MonoBehaviour
             _animator.SetTrigger(AnimIDAttack);
         }
 
+        PlayAttackSound();
         _attackTimer = timePerAttack;
     }
 
@@ -211,8 +197,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (!_hasAnimator) return;
 
-        float speedPercent = _agent.velocity.magnitude / Mathf.Max(_agent.speed, 0.01f);
-        _animator.SetFloat(AnimIDSpeed, speedPercent);
+        _animator.SetFloat(AnimIDSpeed, _agent.velocity.magnitude);
     }
 
     public void GotHit(int amount)
@@ -237,9 +222,8 @@ public class EnemyAI : MonoBehaviour
         _agent.isStopped = true;
         _healthBar.gameObject.SetActive(false);
 
-        StopChaseSound();
         StopAttackSound();
-        // AudioManager.Instance.Play("ZombieDeath");
+        AudioManager.Instance.Play("ZombieDeath");
 
         if (_hasAnimator)
         {
@@ -258,5 +242,39 @@ public class EnemyAI : MonoBehaviour
     public ZombieType GetZombieType()
     {
         return _zombieType;
+    }
+
+    private void HandleMutation()
+    {
+        if (_isAgg)
+            return;
+
+        if (!(_isMutation && GameManager.Instance.IsInCameraView(_cam.GetComponent<Camera>(), transform)))
+            return;
+
+        int trigger = UnityEngine.Random.Range(1, 100);
+        
+        if (_aggressiveTriggerInterval <= 0f)
+        {
+            if (trigger < 30)
+            {
+                _isAgg = true;
+                _agent.speed = runSpeed;
+                StartCoroutine("WaitAggress");
+            }
+
+            _aggressiveTriggerInterval = aggressiveTriggerInterval;
+        }
+
+        _aggressiveTriggerInterval -= Time.deltaTime;
+    }
+
+    private IEnumerator WaitAggress()
+    {
+        _agent.isStopped = true;
+        _animator.SetTrigger(AnimIDAgg);
+        AudioManager.Instance.Play("ZomAgg");
+        yield return new WaitForSeconds(2.5f);
+        _agent.isStopped = false;
     }
 }

@@ -15,13 +15,14 @@ public class TopDown3DController : MonoBehaviour
     [Header("Attack")]
     [SerializeField] private float animateAttackInterval = 2f;
     [SerializeField] private float ammoDestroy = .3f;
-    // [SerializeField] private ParticleSystem bloodPS;
+    [SerializeField] private float reloadTime = .3f;
 
     [Header("References"), Space]
     [SerializeField] private AssetsInputSystems input;
     [SerializeField] private CharacterController controller;
     [SerializeField] private Animator animator;
     [SerializeField] private HealthBar healthBar;
+    [SerializeField] private ParticleSystem bloodPS;
 
 
     [Header("Player Grounded")]
@@ -31,10 +32,16 @@ public class TopDown3DController : MonoBehaviour
     [SerializeField] private LayerMask GroundLayers;
     [SerializeField] private Transform GunMuzzle;
 
+    [Header("Bomb")]
+    [SerializeField] private Transform bombPrefab;
+    [SerializeField] private int bombAmount;
+    [SerializeField] private float plantBombInterval;
+
     // Animation IDs
     private int _animIDSpeed;
     private int _animIDMotionSpeed;
     private int _animIDAttack;
+    private int _animIDReload;
     private int _animIDDeath;
 
     // Player
@@ -53,7 +60,12 @@ public class TopDown3DController : MonoBehaviour
     private float _attackInterval;
     private float _animateAttackInterval;
     private bool _isRecoil;
-    // private float _BombInterval;
+    private int _gunMagazine;
+    private int _currentMagazine;
+
+    //Landmine
+    private float _plantBombInterval;
+    public event Action<int> PlantBombEvent;
 
     private GameObject mainCamera;
 
@@ -76,23 +88,64 @@ public class TopDown3DController : MonoBehaviour
     private void Setup()
     {
         _hasAnimator = animator != null ? true : false;
+
+        PlantBombEvent?.Invoke(bombAmount);
     }
 
     private void AssignAnimationIDs()
     {
         _animIDSpeed = Animator.StringToHash("Speed");
         _animIDAttack = Animator.StringToHash("Attack");
+        _animIDReload = Animator.StringToHash("Reload");
         _animIDDeath = Animator.StringToHash("Death");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
     private void Update()
     {
+        if(_isDie)
+			return;
+
+		if(healthBar.Health <= 0)
+        {
+            OutOfHp();
+        }
+
         ApplyGravity();
         GroundedCheck();
         Move();
         Attack();
+        PlantBomb();
     }
+
+    private void OutOfHp()
+    {
+		_isDie = true;
+        Debug.Log("GameOver");
+		GameManager.Instance.Gameover();
+		// animator.SetTrigger(_animIDDeath);
+    }
+
+    public void PlantBomb()
+	{
+		if (input.bombTrigger && _plantBombInterval <= 0)
+		{
+			if(bombAmount > 0)
+			{
+				Vector3 position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+				Instantiate(bombPrefab, position, Quaternion.identity);
+				bombAmount--;
+				PlantBombEvent?.Invoke(bombAmount);
+				_plantBombInterval = plantBombInterval;
+			}
+			else
+			{
+				Debug.Log("Out of bomb");
+			}
+		}
+
+		_plantBombInterval -= Time.deltaTime;
+	}
 
     private void Attack()
     {
@@ -100,6 +153,12 @@ public class TopDown3DController : MonoBehaviour
         {
             if (_attackInterval <= 0f)
             {
+                if(_currentMagazine <= 0)
+                {
+                    StartCoroutine("Reload");
+                    return;
+                }
+
                 if (_hasAnimator && _animateAttackInterval <= 0f)
                 {
                     animator.SetTrigger(_animIDAttack);
@@ -112,25 +171,33 @@ public class TopDown3DController : MonoBehaviour
 
                 string guntype = _gun.gunType.ToString();
 
-                // AudioManager.Instance.Play(guntype);
+                AudioManager.Instance.Play(guntype);
 
                 Transform ammoPrefab = _gun.ammoPrefabTransform;
                 Transform ammo = Instantiate(ammoPrefab, GunMuzzle);
                 ammo.GetComponent<Ammo>().damge = _gun.damagePerTime;
+                _currentMagazine -= 1;
 
                 Destroy(ammo.gameObject, ammoDestroy);
-                // Destroy(Instantiate(_gun.vfxPrefabTransform, GunMuzzle).gameObject, ammoDestroy);
+                Destroy(Instantiate(_gun.vfxPrefabTransform, GunMuzzle).gameObject, ammoDestroy);
 
                 _attackInterval = _gun.timePerAttk;
             }
         }
         else
         {
-        	_isRecoil = false;
+            _isRecoil = false;
         }
 
         _attackInterval -= Time.deltaTime;
         _animateAttackInterval -= Time.deltaTime;
+    }
+
+    private IEnumerator Reload()
+    {
+        animator.SetTrigger(_animIDReload);
+        yield return new WaitForSeconds(reloadTime);
+        _currentMagazine = _gunMagazine;
     }
 
     private void Move()
@@ -225,17 +292,19 @@ public class TopDown3DController : MonoBehaviour
     }
 
     public void SetGun(Gun gun)
-	{
-		_attackInterval = -1f;
-		_gun = gun;
-	}
+    {
+        _attackInterval = -1f;
+        _gunMagazine = gun.magazine;
+        _currentMagazine = _gunMagazine;
+        _gun = gun;
+    }
 
     public void TakeDamge(int damage)
     {
         if (_isDie) return;
 
         healthBar.GotHit(damage);
-        // bloodPS.Play();
+        bloodPS.Play();
     }
 
     public HealthBar GetHealthBar()

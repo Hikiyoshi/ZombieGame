@@ -4,6 +4,7 @@ public class Ammo : MonoBehaviour
 {
     [SerializeField] private bool _isMulti = false;
     [SerializeField] private Transform _hitEffect;
+    [SerializeField] private Transform _hitEffect2;
     public int damge {get; set;}
     private bool _hasHit = false;
 
@@ -18,7 +19,8 @@ public class Ammo : MonoBehaviour
             {
                 zombie.GotHit(damge);
                 _hasHit = true;
-                // Instantiate(_hitEffect, other.transform);
+                Instantiate(_hitEffect, other.transform);
+                Instantiate(_hitEffect2, other.transform);
             }
         }
     }

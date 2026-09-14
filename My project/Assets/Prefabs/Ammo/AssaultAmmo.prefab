@@ -67,4 +67,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Ammo
   _isMulti: 0
-  _hitEffect: {fileID: 0}
+  _hitEffect: {fileID: 400002, guid: 4d0d6fb030d1e1245b42bcca425fbdfe, type: 3}
+  _hitEffect2: {fileID: 400002, guid: f75efcef4bb42054abf94f8e5c701adc, type: 3}

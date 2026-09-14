@@ -18,4 +18,5 @@ public enum GunType
 {
     Assault,
     Shotgun,
+    Smg,
 }
